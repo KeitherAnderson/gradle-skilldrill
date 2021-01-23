@@ -3,12 +3,90 @@
  */
 package edu.isu.cs.cs2263;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
+import java.util.ArrayList;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
+import javafx.event.EventHandler;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+
+public class App extends Application {
+    
+    static private Student[] students;
+    static public IOManager manager;
+    
+    @Override
+    public void start(Stage stage) {
+        stage.setTitle("Course View");
+        BorderPane pane = new BorderPane();
+        Scene scene = new Scene(pane, 840, 480);
+        VBox left = new VBox(10);
+        VBox right = new VBox(10);
+        Label label = new Label("Is Taking");
+        Button button = new Button("Load Data");
+        
+        
+        ObservableList<Student> names = FXCollections.observableArrayList();
+        ObservableList<Course> courses = FXCollections.observableArrayList();
+        ListView<Student> listView1 = new ListView<Student>(names);
+        ListView<Course> listView2 = new ListView<Course>(courses);
+        
+        left.getChildren().addAll(listView1);
+        right.getChildren().addAll(listView2);
+        pane.setLeft(left);
+        pane.setRight(right);
+        pane.setBottom(button);
+        pane.setCenter(label);
+        
+        listView1.setMaxSize(500, 560);
+        listView2.setMaxSize(700, 560);
+        pane.setMargin(left, new Insets(20,12,12,20));
+        pane.setMargin(button, new Insets(0,0,12,740));
+        pane.setMargin(right, new Insets(20,20,12,12));
+
+        EventHandler<MouseEvent> eventHandler = new EventHandler<MouseEvent>() { 
+            @Override 
+            public void handle(MouseEvent e) { 
+                students = manager.readData("students.json");
+                listView1.getItems().clear();
+                
+                for (int i = 0; i < students.length; i++) {
+                    names.add(students[i]);
+                }
+            } 
+        };   
+         
+        EventHandler<MouseEvent> listHandler = new EventHandler<MouseEvent>() { 
+            @Override 
+            public void handle(MouseEvent e) { 
+                listView2.getItems().clear();
+                
+                ArrayList<Course> temp = listView1.getSelectionModel().getSelectedItem().getCourses();
+                
+                for (int i = 0; i < temp.size(); i++) {
+                    courses.add(temp.get(i));
+                }
+            } 
+        };   
+        
+        button.addEventFilter(MouseEvent.MOUSE_CLICKED, eventHandler);
+        listView1.addEventFilter(MouseEvent.MOUSE_CLICKED, listHandler);
+        
+        stage.setScene(scene);
+        stage.show();
     }
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        manager = new IOManager();
+        launch();
     }
 }
